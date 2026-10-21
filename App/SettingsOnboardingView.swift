@@ -269,7 +269,7 @@ struct DataSettings: View {
             }
         }
         .fileExporter(isPresented: $exporting, document: JSONFile(data: (try? model.store?.encode(model.ledger)) ?? Data()), contentType: .json,
-                      defaultFilename: "Cockpit-sauvegarde-\(Date().formatted(.iso8601.year().month().day())).json") { _ in }
+                      defaultFilename: "Liasse-sauvegarde-\(Date().formatted(.iso8601.year().month().day())).json") { _ in }
     }
 }
 
@@ -284,7 +284,7 @@ struct JSONFile: FileDocument {
 struct PrivacySettings: View {
     var body: some View {
         Form {
-            Section("Ce que fait Cockpit de tes données") {
+            Section("Ce que fait Liasse de tes données") {
                 Label("Tout est stocké sur ce Mac, dans le dossier privé de l'app (fichiers lisibles par toi seul).", systemImage: "internaldrive")
                 Label("Aucune télémétrie, aucun traçage, aucun compte, aucune synchronisation cloud.", systemImage: "eye.slash")
                 Label("Aucune connexion bancaire : les relevés sont importés depuis un fichier que tu choisis.", systemImage: "building.columns")
@@ -334,7 +334,7 @@ struct OnboardingView: View {
                 switch step {
                 case 0:
                     VStack(alignment: .leading, spacing: DS.Space.m) {
-                        Text("Cockpit t'aide à savoir combien tu as vraiment gagné, combien tu peux utiliser et combien garder pour l'URSSAF et les impôts.")
+                        Text("Liasse t'aide à savoir combien tu as vraiment gagné, combien tu peux utiliser et combien garder pour l'URSSAF et les impôts.")
                             .font(.title3).fixedSize(horizontal: false, vertical: true)
                         Text("Quelques questions pour calculer selon ta situation réelle : aucun taux n'est supposé à ta place. Tu pourras tout modifier dans les réglages.")
                             .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

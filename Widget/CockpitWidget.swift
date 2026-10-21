@@ -4,7 +4,7 @@ import AppIntents
 import CockpitCore
 
 struct CockpitWidgetIntent: WidgetConfigurationIntent {
-    static let title: LocalizedStringResource = "Cockpit"
+    static let title: LocalizedStringResource = "Liasse"
     static let description = IntentDescription("Ton argent disponible, tes réserves et tes échéances.")
     @Parameter(title: "Masquer les montants", default: false) var hideAmounts: Bool
     @Parameter(title: "Afficher l'évolution récente", default: true) var showTrend: Bool
@@ -49,7 +49,7 @@ struct CockpitWidget: Widget {
                     LinearGradient(colors: [WColor.brand.opacity(0.18), WColor.income.opacity(0.10)], startPoint: .topLeading, endPoint: .bottomTrailing)
                 }
         }
-        .configurationDisplayName("Cockpit")
+        .configurationDisplayName("Liasse")
         .description("Argent disponible, réserves, factures en attente et échéances.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }

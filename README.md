@@ -1,8 +1,16 @@
-# Cockpit — pilotage financier pour freelance (macOS)
+# Liasse — pilotage financier pour freelance (macOS)
 
 App native macOS (SwiftUI, macOS 15+) avec widget WidgetKit. Locale, privée, sans compte ni cloud.
 
-## Lancer
+## Installer dans Applications
+
+```bash
+./scripts/install.sh
+```
+
+Compile la version Release, la copie dans `/Applications/Liasse.app` (ou `~/Applications` si besoin), l'enregistre auprès de macOS (Launchpad, Spotlight, galerie de widgets) et l'ouvre. À relancer après chaque mise à jour du code : tes données sont conservées.
+
+## Développer
 
 ```bash
 xcodegen generate            # régénère Cockpit.xcodeproj depuis project.yml
@@ -13,7 +21,7 @@ En ligne de commande :
 
 ```bash
 xcodebuild -project Cockpit.xcodeproj -scheme Cockpit -derivedDataPath build/DD build
-open build/DD/Build/Products/Debug/Cockpit.app
+open build/DD/Build/Products/Debug/Liasse.app
 ```
 
 Données d'exemple (dossier séparé, tes vraies données ne sont pas touchées) : `scripts/demo.sh` (`--reset` pour repartir de zéro).
@@ -32,6 +40,7 @@ Tests du moteur (45 tests) : `cd CockpitCore && swift test`.
 | Recommandations chiffrées | `Insights.swift` |
 | Import CSV, relances, instantané widget | `Services.swift`, `SharedSnapshot.swift` |
 | Persistance JSON atomique, migrations, sauvegardes | `Persistence.swift` |
+| Icône et logo (générés en code) | `scripts/make_icon.swift` → `App/Assets.xcassets`, `Shared/Brand.xcassets` |
 | Interface SwiftUI | `App/` (tokens et composants dans `Design.swift`, PDF dans `DocumentPDF.swift`) |
 | Widget | `Widget/` (timeline) + `Shared/WidgetViews.swift` (vues partagées avec l'aperçu de l'app) |
 

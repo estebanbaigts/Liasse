@@ -27,16 +27,18 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.cockpit.app
-        PRODUCT_NAME: Cockpit
+        PRODUCT_NAME: Liasse
         CODE_SIGN_ENTITLEMENTS: Config/App-$(COCKPIT_ENTITLEMENTS_VARIANT).entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Cockpit
+        INFOPLIST_KEY_CFBundleDisplayName: Liasse
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: Cockpit
+        CFBundleDisplayName: Liasse
+        CFBundleName: Liasse
         CockpitAppGroup: $(COCKPIT_APP_GROUP)
         LSApplicationCategoryType: public.app-category.finance
         CFBundleURLTypes:
@@ -56,7 +58,8 @@ targets:
     info:
       path: Widget/Info.plist
       properties:
-        CFBundleDisplayName: Cockpit
+        CFBundleDisplayName: Liasse
+        CFBundleName: Liasse
         CockpitAppGroup: $(COCKPIT_APP_GROUP)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension

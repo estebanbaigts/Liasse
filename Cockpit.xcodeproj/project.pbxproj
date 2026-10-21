@@ -21,11 +21,14 @@
 		A7EB3BAF61CC5BCC444E2487 /* InvoicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536B97AA6429BF6F6655A17F /* InvoicesView.swift */; };
 		AC88B6C4BFCC0D85A232BBE4 /* CockpitCore in Frameworks */ = {isa = PBXBuildFile; productRef = D01AFB611D22F0261E6A49B9 /* CockpitCore */; };
 		B0373FCEE51BA0E08CA3FDB7 /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFC6BEFDDD1A8FD380C305D8 /* WidgetViews.swift */; };
+		C8EEB72159F1199850CD68CD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 79C17A8659B56D5525FC6E6B /* Assets.xcassets */; };
 		CC084AD90E53785DEDD62A83 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85D0FA12239E542DC12D2AF /* DashboardView.swift */; };
 		CC5CEB0E952BAE20ADE3A73D /* SettingsOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A2425C4217659D1D43B582 /* SettingsOnboardingView.swift */; };
+		D9B156E450A6C367859F0246 /* Brand.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50A325F81FEAB7C0E6FD3AD3 /* Brand.xcassets */; };
 		E6E2611DEFC96A2B4BA1BF30 /* Design.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D81CDB97AC6BEB2E36A67E5 /* Design.swift */; };
 		E93BF77B8F203E615D1C7D87 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45F92EA6673A65351E67026 /* AppModel.swift */; };
 		F06996ACEE9F03BE64DDC9F3 /* CockpitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160DA489E2A5F28DE08728E8 /* CockpitApp.swift */; };
+		F10E04D26B88F68052671D9A /* Brand.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50A325F81FEAB7C0E6FD3AD3 /* Brand.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,10 +61,12 @@
 		160DA489E2A5F28DE08728E8 /* CockpitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CockpitApp.swift; sourceTree = "<group>"; };
 		2957735CAA9A92F249676909 /* CockpitWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CockpitWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D81CDB97AC6BEB2E36A67E5 /* Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design.swift; sourceTree = "<group>"; };
+		50A325F81FEAB7C0E6FD3AD3 /* Brand.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Brand.xcassets; sourceTree = "<group>"; };
 		536B97AA6429BF6F6655A17F /* InvoicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoicesView.swift; sourceTree = "<group>"; };
 		55E295A31066B0492C739E4B /* CockpitCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CockpitCore; path = CockpitCore; sourceTree = SOURCE_ROOT; };
 		603862EED2C0D06192153226 /* Fun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fun.swift; sourceTree = "<group>"; };
 		70F73173468B21D2CA4D246A /* Cockpit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cockpit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		79C17A8659B56D5525FC6E6B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		880DFFDEB0F76C1200722D54 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		8F7B975CF567D2CE7DCFF2A3 /* DocumentEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentEditor.swift; sourceTree = "<group>"; };
 		9438FE76A70FBF7620EFBA4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -109,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				A45F92EA6673A65351E67026 /* AppModel.swift */,
+				79C17A8659B56D5525FC6E6B /* Assets.xcassets */,
 				E0B2657DBAD160DA16F4ACEE /* ClientsMissionsView.swift */,
 				160DA489E2A5F28DE08728E8 /* CockpitApp.swift */,
 				B85D0FA12239E542DC12D2AF /* DashboardView.swift */,
@@ -129,6 +135,7 @@
 		5C60ACCE2FE66B1BC747FDEA /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				50A325F81FEAB7C0E6FD3AD3 /* Brand.xcassets */,
 				FFC6BEFDDD1A8FD380C305D8 /* WidgetViews.swift */,
 			);
 			path = Shared;
@@ -179,6 +186,7 @@
 			buildConfigurationList = 530212B27255F1679010376F /* Build configuration list for PBXNativeTarget "CockpitWidgetExtension" */;
 			buildPhases = (
 				489E4F85084372FDD245F4AB /* Sources */,
+				5EAD732C5678A6B1CB02DF79 /* Resources */,
 				0C0AA8B03C7A099E5E8D4399 /* Frameworks */,
 			);
 			buildRules = (
@@ -198,6 +206,7 @@
 			buildConfigurationList = DDD9035969FB44F62AE4FFCE /* Build configuration list for PBXNativeTarget "Cockpit" */;
 			buildPhases = (
 				1CF695282F179492BC025448 /* Sources */,
+				EDEA104B055DB77E276D3D4E /* Resources */,
 				D1C978041566B0F8E0E6904B /* Frameworks */,
 				8235E39030B8B396860F77F0 /* Embed Foundation Extensions */,
 			);
@@ -255,6 +264,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5EAD732C5678A6B1CB02DF79 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9B156E450A6C367859F0246 /* Brand.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EDEA104B055DB77E276D3D4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C8EEB72159F1199850CD68CD /* Assets.xcassets in Resources */,
+				F10E04D26B88F68052671D9A /* Brand.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1CF695282F179492BC025448 /* Sources */ = {
@@ -402,7 +431,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Cockpit;
+				INFOPLIST_KEY_CFBundleDisplayName = Liasse;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -410,7 +439,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.cockpit.app;
-				PRODUCT_NAME = Cockpit;
+				PRODUCT_NAME = Liasse;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -423,7 +452,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Cockpit;
+				INFOPLIST_KEY_CFBundleDisplayName = Liasse;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -431,7 +460,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fr.cockpit.app;
-				PRODUCT_NAME = Cockpit;
+				PRODUCT_NAME = Liasse;
 				SDKROOT = macosx;
 			};
 			name = Release;

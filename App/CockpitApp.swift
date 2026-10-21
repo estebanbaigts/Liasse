@@ -6,7 +6,7 @@ struct CockpitApp: App {
     @State private var model = AppModel()
 
     var body: some Scene {
-        WindowGroup("Cockpit", id: "main") {
+        WindowGroup("Liasse", id: "main") {
             RootView()
                 .environment(model)
                 .onOpenURL { model.open($0) }
@@ -143,7 +143,7 @@ struct MenuBarPanel: View {
             }
             Divider()
             HStack {
-                Button("Ouvrir Cockpit") { NSApp.activate(); openWindow(id: "main") }
+                Button("Ouvrir Liasse") { NSApp.activate(); openWindow(id: "main") }
                 Spacer()
                 Button("Quitter") { NSApp.terminate(nil) }.buttonStyle(.borderless).foregroundStyle(.secondary)
             }

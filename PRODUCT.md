@@ -44,6 +44,9 @@ Local-first and explainable. Every amount traces back to its source transactions
 
 ## Brand Commitments
 
+- Name: **Liasse** (chosen 2026-10-21, replacing the working name "Cockpit", which is widely used). User-facing name only; bundle id `fr.cockpit.app` and repo/code names unchanged to keep existing data. Trademark/App Store availability not yet verified.
+- App icon: "Enveloppes" premium direction chosen by the user — graphite background, ivory/sand/sage envelopes, brushed-gold € medal; no flashy colors on the icon.
+
 - Voice: French, tutoiement, direct and factual ("Tu peux utiliser 4 200 €", "Deux factures sont en retard"). Confirmed by the user.
 - Visual personality (updated by the user on 2026-10-21, replacing the earlier "sober Apple-premium" direction, which the user found too office-like): friendly, lively and animated, while staying a native macOS SwiftUI app with the same features. Rounded system type, warm vivid colors, colored icon bubbles, soft cards, animated numbers and small celebratory moments (e.g. an invoice fully paid). Motion must stay quick and respect Reduce Motion; color is never the only carrier of meaning; estimates stay clearly labelled.
 

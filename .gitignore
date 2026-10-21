@@ -2,3 +2,5 @@ build/
 *.xcodeproj/xcuserdata/
 .build/
 .impeccable/hook.cache.json
+Cockpit.xcodeproj/project.xcworkspace/xcuserdata/
+CockpitCore/.swiftpm/

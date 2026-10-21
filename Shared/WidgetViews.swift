@@ -52,8 +52,8 @@ struct CockpitWidgetContent: View {
             }
         } else {
             VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: "eurosign.circle").font(.title2).foregroundStyle(.secondary)
-                Text("Ouvre Cockpit").font(.headline)
+                Image("CockpitMark").resizable().frame(width: 34, height: 34)
+                Text("Ouvre Liasse").font(.headline)
                 Text("Le résumé apparaîtra après le premier enregistrement.").font(.caption).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -68,7 +68,7 @@ struct CockpitWidgetContent: View {
     func small(_ s: WidgetSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 5) {
-                Image(systemName: "eurosign.circle.fill").foregroundStyle(WColor.income)
+                Image("CockpitMark").resizable().frame(width: 16, height: 16)
                 Caption("Disponible · \(s.monthLabel.lowercased())")
             }
             M(money: s.available, hide: entry.hide, font: .system(size: 24, weight: .semibold), color: s.available.isNegative ? WColor.outflow : WColor.income)

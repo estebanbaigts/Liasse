@@ -183,7 +183,7 @@ enum PDFRenderer {
             var box = CGRect(origin: .zero, size: DocumentPage.size)
             guard let consumer = CGDataConsumer(data: data as CFMutableData),
                   let ctx = CGContext(consumer: consumer, mediaBox: &box, [kCGPDFContextTitle as String: "\(doc.title) \(doc.number ?? "")",
-                                                                           kCGPDFContextCreator as String: "Cockpit"] as CFDictionary) else { return }
+                                                                           kCGPDFContextCreator as String: "Liasse"] as CFDictionary) else { return }
             ctx.beginPDFPage(nil)
             draw(ctx)
             ctx.endPDFPage()
