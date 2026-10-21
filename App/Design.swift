@@ -144,6 +144,9 @@ struct EmptyState: View {
         } actions: {
             if let actionTitle, let action { Button(actionTitle, action: action).buttonStyle(.borderedProminent) }
         }
+        // Sans cette contrainte, la hauteur idéale de ContentUnavailableView peut dépasser la fenêtre
+        // et décaler toute la mise en page (barre latérale comprise).
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
     }
 }
 
@@ -202,7 +205,10 @@ struct MoneyField: View {
             .accessibilityLabel(title)
             .onAppear { text = format(value) }
             .onChange(of: value) { if !focused { text = format(value) } }
-            .onChange(of: text) { if let m = MoneyFormat.parse(text) { value = m } }
+            .onChange(of: text) {
+                if text.trimmingCharacters(in: .whitespaces).isEmpty { value = .zero }
+                else if let m = MoneyFormat.parse(text) { value = m }
+            }
             .onChange(of: focused) { if !focused { text = format(value) } }
     }
     func format(_ m: Money) -> String {

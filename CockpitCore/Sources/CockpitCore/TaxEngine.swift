@@ -143,19 +143,25 @@ public struct TaxEngine: Sendable {
     }
 
     func key(_ kind: ObligationKind, _ p: Period) -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.calendar = calendar; f.timeZone = calendar.timeZone
-        return "\(kind.rawValue)|\(f.string(from: p.start))|\(f.string(from: p.end))"
+        func day(_ d: Date) -> String {
+            let c = calendar.dateComponents([.year, .month, .day], from: d)
+            return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)
+        }
+        return "\(kind.rawValue)|\(day(p.start))|\(day(p.end))"
     }
 
     func record(_ key: String) -> ObligationRecord? { ledger.obligationRecords.first { $0.key == key } }
+
+    static let monthYear: DateFormatter = {
+        let f = DateFormatter(); f.locale = Locale(identifier: "fr_FR"); f.dateFormat = "LLLL yyyy"; f.timeZone = Calendar.fr.timeZone; return f
+    }()
 
     public func periodLabel(_ p: Period, periodicity: DeclarationPeriodicity) -> String {
         let y = calendar.component(.year, from: p.start)
         if periodicity == .quarterly {
             return "T\((calendar.component(.month, from: p.start) - 1) / 3 + 1) \(y)"
         }
-        let f = DateFormatter(); f.locale = Locale(identifier: "fr_FR"); f.dateFormat = "LLLL yyyy"
-        return f.string(from: p.start).capitalized(with: Locale(identifier: "fr_FR"))
+        return TaxEngine.monthYear.string(from: p.start).capitalized(with: Locale(identifier: "fr_FR"))
     }
 
     /// Libellé court d'une obligation : période déclarative, ou année pour les obligations annuelles.

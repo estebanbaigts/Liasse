@@ -28,7 +28,7 @@ public struct Ledger: Codable, Hashable, Sendable {
 public enum LedgerError: LocalizedError, Equatable {
     case invoiceNotDraft, invoiceNotIssued, emptyInvoice, missingClient, missingIssuerInfo([String])
     case paymentExceedsBalance(balance: Money), nonPositiveAmount, quoteNotAccepted, alreadyInvoiced
-    case duplicate, notFound
+    case duplicate, notFound, lineWithoutLabel
 
     public var errorDescription: String? {
         switch self {
@@ -43,6 +43,7 @@ public enum LedgerError: LocalizedError, Equatable {
         case .alreadyInvoiced: "Ce devis a déjà été converti en facture."
         case .duplicate: "Cette opération existe déjà."
         case .notFound: "Élément introuvable."
+        case .lineWithoutLabel: "Chaque ligne doit avoir une désignation (description de la prestation)."
         }
     }
 }
@@ -65,6 +66,7 @@ extension Ledger {
         if invoice.lifecycle != .draft { return .invoiceNotDraft }
         if invoice.clientId == nil || client(invoice.clientId) == nil { return .missingClient }
         if invoice.lines.isEmpty || !invoice.totals.ttc.isPositive { return .emptyInvoice }
+        if invoice.lines.contains(where: { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { return .lineWithoutLabel }
         var missing: [String] = []
         if profile.displayName.trimmingCharacters(in: .whitespaces).isEmpty { missing.append("nom") }
         if profile.address.trimmingCharacters(in: .whitespaces).isEmpty { missing.append("adresse") }
@@ -168,6 +170,7 @@ extension Ledger {
         guard let q = quotes.firstIndex(where: { $0.id == id }) else { throw LedgerError.notFound }
         guard quotes[q].clientId != nil else { throw LedgerError.missingClient }
         guard !quotes[q].lines.isEmpty else { throw LedgerError.emptyInvoice }
+        guard !quotes[q].lines.contains(where: { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { throw LedgerError.lineWithoutLabel }
         if quotes[q].number == nil {
             quotes[q].number = nextNumber(prefix: "D", year: calendar.component(.year, from: date))
         }

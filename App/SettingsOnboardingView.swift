@@ -31,7 +31,13 @@ struct ProfileRegimeSection: View {
             if p.versementLiberatoire { Text("Possible seulement si ton revenu fiscal de référence N-2 est sous le plafond (29 579 € pour une personne seule en 2026).").font(.caption).foregroundStyle(.secondary) }
             Toggle("Je bénéficie de l'ACRE", isOn: $p.acre)
             Toggle("Utiliser le taux exact indiqué par l'URSSAF", isOn: $hasOverride)
-                .onChange(of: hasOverride) { if !hasOverride { p.cotisationRateOverride = nil } else if p.cotisationRateOverride == nil { p.cotisationRateOverride = Decimal(string: "0.128") } }
+                .onChange(of: hasOverride) {
+                    if !hasOverride { p.cotisationRateOverride = nil }
+                    else if p.cotisationRateOverride == nil {
+                        // Point de départ : le taux officiel de l'activité, à remplacer par celui de l'URSSAF.
+                        p.cotisationRateOverride = TaxRuleSet.defaultCatalogue.rule(.cotisations, activity: p.activity, artisan: p.isArtisan, on: Date())?.value ?? 0
+                    }
+                }
             if hasOverride {
                 LabeledContent("Taux de cotisations (%)") { DecimalField(title: "%", value: Binding(get: { p.cotisationRateOverride ?? 0 }, set: { p.cotisationRateOverride = $0 }), percent: true).frame(width: 80) }
                 Text("Prioritaire sur le catalogue de règles (utile avec l'ACRE).").font(.caption).foregroundStyle(.secondary)
@@ -48,7 +54,7 @@ struct ProfileRegimeSection: View {
         Section("Impôt et CFE") {
             if !p.versementLiberatoire {
                 Toggle("Je connais mon taux de prélèvement à la source", isOn: $hasPAS)
-                    .onChange(of: hasPAS) { if !hasPAS { p.withholdingTaxRate = nil } else if p.withholdingTaxRate == nil { p.withholdingTaxRate = Decimal(string: "0.075") } }
+                    .onChange(of: hasPAS) { if !hasPAS { p.withholdingTaxRate = nil } else if p.withholdingTaxRate == nil { p.withholdingTaxRate = 0 } }
                 if hasPAS { LabeledContent("Taux (%)") { DecimalField(title: "%", value: Binding(get: { p.withholdingTaxRate ?? 0 }, set: { p.withholdingTaxRate = $0 }), percent: true).frame(width: 80) } }
                 Text("Il figure sur impots.gouv.fr › Gérer mon prélèvement à la source. Sans lui, l'impôt n'est pas estimé.").font(.caption).foregroundStyle(.secondary)
             }

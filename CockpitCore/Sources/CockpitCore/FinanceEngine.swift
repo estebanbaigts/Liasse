@@ -67,11 +67,26 @@ public struct CashPosition: Sendable {
     public var free: Money { balance - reservesOutstanding }
 }
 
+/// Mémorise les calculs coûteux pour une même instance du moteur (données figées).
+final class FinanceMemo: @unchecked Sendable {
+    let lock = NSLock()
+    var obligations: [Obligation]?
+    var cash: CashPosition?
+    var open: [Invoice]?
+    func get<T>(_ kp: ReferenceWritableKeyPath<FinanceMemo, T?>, _ make: () -> T) -> T {
+        lock.lock(); if let v = self[keyPath: kp] { lock.unlock(); return v }; lock.unlock()
+        let v = make()
+        lock.lock(); self[keyPath: kp] = v; lock.unlock()
+        return v
+    }
+}
+
 public struct FinanceEngine: Sendable {
     public let ledger: Ledger
     public let today: Date
     public let calendar: Calendar
     public let tax: TaxEngine
+    let memo = FinanceMemo()
 
     public init(ledger: Ledger, today: Date, calendar: Calendar = .fr) {
         self.ledger = ledger; self.today = today; self.calendar = calendar
@@ -134,7 +149,9 @@ public struct FinanceEngine: Sendable {
 
     // MARK: Créances
 
-    public var openInvoices: [Invoice] {
+    public var openInvoices: [Invoice] { memo.get(\.open) { computeOpenInvoices() } }
+
+    func computeOpenInvoices() -> [Invoice] {
         ledger.invoices.filter { $0.kind == .invoice && $0.lifecycle == .issued && $0.balance.isPositive }
             .sorted { $0.dueDate < $1.dueDate }
     }
@@ -143,13 +160,17 @@ public struct FinanceEngine: Sendable {
 
     // MARK: Obligations et trésorerie
 
-    public func allObligations() -> [Obligation] {
+    public func allObligations() -> [Obligation] { memo.get(\.obligations) { computeAllObligations() } }
+
+    func computeAllObligations() -> [Obligation] {
         let y = calendar.component(.year, from: today)
         let startY = calendar.component(.year, from: ledger.profile.activityStart)
         return (max(startY, y - 1)...y + 1).flatMap { tax.obligations(year: $0, today: today) }
     }
 
-    public func cashPosition() -> CashPosition {
+    public func cashPosition() -> CashPosition { memo.get(\.cash) { computeCashPosition() } }
+
+    func computeCashPosition() -> CashPosition {
         let p = ledger.profile
         let since = Period(start: p.openingBalanceDate, end: calendar.date(byAdding: .year, value: 50, to: today)!)
         var trace = [TraceItem(date: p.openingBalanceDate, label: "Solde de départ saisi", amount: p.openingBalance, source: .opening)]

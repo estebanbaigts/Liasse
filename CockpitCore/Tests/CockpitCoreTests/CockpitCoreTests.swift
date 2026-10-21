@@ -116,6 +116,15 @@ func addIssued(_ l: inout Ledger, amount: String, issued: Date, due: Date) -> UU
         #expect(l.counters.isEmpty)
     }
 
+    @Test func lineWithoutLabelBlocksIssuance() {
+        var l = baseLedger()
+        var inv = Invoice(clientId: l.clients[0].id, issueDate: d(2026, 1, 5), dueDate: d(2026, 2, 5))
+        inv.lines = [DocumentLine(label: "  ", quantity: 1, unit: .day, unitPrice: Money(euros: 500))]
+        l.invoices.append(inv)
+        #expect(throws: LedgerError.lineWithoutLabel) { try l.issueInvoice(id: inv.id, on: d(2026, 1, 5)) }
+        #expect(l.counters.isEmpty)
+    }
+
     @Test func legalMentionsFrozenAtIssue() throws {
         var l = baseLedger()
         let a = addIssued(&l, amount: "100", issued: d(2026, 1, 5), due: d(2026, 2, 5))

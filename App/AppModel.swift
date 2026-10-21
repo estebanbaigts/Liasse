@@ -76,11 +76,54 @@ final class AppModel {
         showOnboarding = !ledger.profile.onboardingCompleted && loadError == nil
         customPeriod = Period(start: Calendar.fr.startOfMonth(today), end: today)
         publishSnapshot()
+        terminationObserver = NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { if self?.saveTask != nil { self?.flushSave() } }
+        }
     }
 
     var today: Date { fixedToday ?? Date() }
-    var finance: FinanceEngine { FinanceEngine(ledger: ledger, today: today) }
+
+    // MARK: Calculs partagés
+    // Un seul moteur par version des données (et par jour) : toutes les vues réutilisent ses résultats mémorisés.
+    /// Incrémenté à chaque modification des données ; lu par les vues pour se mettre à jour.
+    private(set) var revision = 0
+    @ObservationIgnored private var financeCache: (rev: Int, day: Date, engine: FinanceEngine)?
+    @ObservationIgnored private var insightsCache: (rev: Int, assumptions: ForecastAssumptions, items: [Insight])?
+    @ObservationIgnored private var forecastCache: [String: ForecastResult] = [:]
+    @ObservationIgnored private var forecastCacheKey: (rev: Int, assumptions: ForecastAssumptions)?
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
+    @ObservationIgnored private var terminationObserver: NSObjectProtocol?
+
+    var finance: FinanceEngine {
+        _ = revision
+        let day = Calendar.fr.startOfDay(for: today)
+        if let c = financeCache, c.rev == revision, c.day == day { return c.engine }
+        let e = FinanceEngine(ledger: ledger, today: today)
+        financeCache = (revision, day, e)
+        return e
+    }
+
     var forecast: ForecastEngine { ForecastEngine(finance: finance, assumptions: forecastAssumptions) }
+
+    func forecastResult(_ scenario: Scenario, days: Int) -> ForecastResult {
+        _ = revision; let assumptions = forecastAssumptions
+        if forecastCacheKey?.rev != revision || forecastCacheKey?.assumptions != assumptions {
+            forecastCache = [:]; forecastCacheKey = (revision, assumptions)
+        }
+        let key = "\(scenario.rawValue)-\(days)"
+        if let r = forecastCache[key] { return r }
+        let r = forecast.run(scenario, days: days)
+        forecastCache[key] = r
+        return r
+    }
+
+    var insights: [Insight] {
+        _ = revision; let assumptions = forecastAssumptions
+        if let c = insightsCache, c.rev == revision, c.assumptions == assumptions { return c.items }
+        let items = InsightEngine(finance: finance, forecast: forecast).insights()
+        insightsCache = (revision, assumptions, items)
+        return items
+    }
 
     var period: Period {
         switch periodChoice {
@@ -93,27 +136,50 @@ final class AppModel {
 
     // MARK: Mutations
 
-    /// Toute modification passe ici : validation, sauvegarde atomique, widget.
+    /// Toute modification passe ici : validation, mise à jour immédiate de l'écran,
+    /// puis sauvegarde atomique, widget et badges regroupés (quelques centaines de ms plus tard).
     @discardableResult
     func update(_ success: String? = nil, _ change: (inout Ledger) throws -> Void) -> Bool {
         var copy = ledger
         do {
             try change(&copy)
-            ledger = copy
-            try store?.save(ledger)
-            lastSaved = Date()
-            publishSnapshot()
-            if let success { toast = success }
-            return true
         } catch {
             actionError = error.localizedDescription
             return false
         }
+        guard copy != ledger else { return true }
+        ledger = copy
+        revision += 1
+        if let success { toast = success }
+        scheduleSave()
+        return true
+    }
+
+    /// Regroupe les écritures : une frappe au clavier ne déclenche plus une écriture disque.
+    func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            self?.flushSave()
+        }
+    }
+
+    /// Écrit immédiatement les données (aussi appelé à la fermeture de l'app).
+    func flushSave() {
+        saveTask?.cancel(); saveTask = nil
+        do {
+            try store?.save(ledger)
+            lastSaved = Date()
+        } catch {
+            actionError = "Sauvegarde impossible : \(error.localizedDescription)"
+        }
+        publishSnapshot()
     }
 
     func refreshBadges() {
         let fin = finance
-        urgentInsights = InsightEngine(finance: fin, forecast: forecast).insights().filter { $0.urgency >= 2 }.count
+        urgentInsights = insights.filter { $0.urgency >= 2 }.count
         obligationsToHandle = fin.allObligations().filter { ($0.status == .toDeclare || $0.status == .toVerify) && $0.period.start <= today }.count
     }
 
@@ -147,13 +213,14 @@ final class AppModel {
     // MARK: Données
 
     func backupNow() {
+        if saveTask != nil { flushSave() }
         do { let url = try store?.backupNow(ledger); toast = "Sauvegarde créée : \(url?.lastPathComponent ?? "")" }
         catch { actionError = error.localizedDescription }
     }
 
     func restore(from url: URL) {
         guard let store else { return }
-        do { ledger = try store.restore(from: url); publishSnapshot(); toast = "Données restaurées." }
+        do { saveTask?.cancel(); saveTask = nil; ledger = try store.restore(from: url); revision += 1; publishSnapshot(); toast = "Données restaurées." }
         catch { actionError = error.localizedDescription }
     }
 

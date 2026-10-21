@@ -60,25 +60,31 @@ struct HoverLift: ViewModifier {
     }
 }
 
-/// Apparition en cascade à l'ouverture d'un écran.
+/// Apparition en cascade, une seule fois par écran et par lancement : revenir sur un écran est instantané.
+@MainActor enum AppearMemory { static var seen: Set<String> = [] }
+
 struct Appear: ViewModifier {
     var index: Int = 0
+    var key: String
     @State private var shown = false
     @Environment(\.accessibilityReduceMotion) private var reduce
     func body(content: Content) -> some View {
         content
-            .opacity(shown || reduce ? 1 : 0)
-            .offset(y: shown || reduce ? 0 : 12)
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 8)
             .onAppear {
-                guard !reduce else { shown = true; return }
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.82).delay(Double(index) * 0.06)) { shown = true }
+                if reduce || AppearMemory.seen.contains(key) { shown = true; return }
+                withAnimation(.easeOut(duration: 0.28).delay(Double(index) * 0.035)) { shown = true }
+                Task { @MainActor in try? await Task.sleep(for: .seconds(0.6)); AppearMemory.seen.insert(key) }
             }
     }
 }
 
 extension View {
     func hoverLift() -> some View { modifier(HoverLift()) }
-    func appear(_ index: Int = 0) -> some View { modifier(Appear(index: index)) }
+    func appear(_ index: Int = 0, file: String = #fileID, line: Int = #line) -> some View {
+        modifier(Appear(index: index, key: "\(file):\(line):\(index)"))
+    }
 }
 
 /// Montant qui défile jusqu'à sa valeur à l'affichage (et à chaque changement).
@@ -86,14 +92,15 @@ struct CountingAmount: View {
     let money: Money
     var font: Font = DS.Font.hero
     var color: Color = .primary
-    @State private var shown: Double = 0
+    @MainActor static var hasCounted = false
+    @State private var shown: Double = CountingAmount.hasCounted ? .nan : 0
     @Environment(\.accessibilityReduceMotion) private var reduce
 
     var body: some View {
-        Text(MoneyFormat.string(Money(decimalEuros: Decimal(shown)), showCents: true))
+        Text(shown.isNaN ? money.description : MoneyFormat.string(Money(decimalEuros: Decimal(shown)), showCents: true))
             .font(font)
             .foregroundStyle(color)
-            .contentTransition(.numericText(value: shown))
+            .contentTransition(.numericText(value: shown.isNaN ? 0 : shown))
             .monospacedDigit()
             .accessibilityLabel(money.description)
             .onAppear { animate() }
@@ -102,8 +109,9 @@ struct CountingAmount: View {
 
     func animate() {
         let target = NSDecimalNumber(decimal: money.decimal).doubleValue
-        if reduce { shown = target; return }
-        withAnimation(.spring(response: 0.9, dampingFraction: 0.9)) { shown = target }
+        if reduce || shown.isNaN { shown = target; return }
+        withAnimation(.spring(response: 0.7, dampingFraction: 0.9)) { shown = target }
+        CountingAmount.hasCounted = true
     }
 }
 

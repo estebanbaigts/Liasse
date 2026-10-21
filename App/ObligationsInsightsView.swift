@@ -159,7 +159,7 @@ struct ObligationDetail: View {
 struct InsightsView: View {
     @Environment(AppModel.self) private var model
     var body: some View {
-        let items = InsightEngine(finance: model.finance, forecast: model.forecast).insights()
+        let items = model.insights
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Calculées sur ce Mac à partir de tes données. Aucune donnée n'est envoyée à un service externe.")

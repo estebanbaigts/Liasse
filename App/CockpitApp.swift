@@ -15,6 +15,9 @@ struct CockpitApp: App {
         .defaultSize(width: 1180, height: 760)
         .defaultLaunchBehavior(.presented)
         .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Réglages…") { model.screen = .settings }.keyboardShortcut(",")
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Nouvelle facture") { model.requestNew(.invoices) }
                     .keyboardShortcut("n")
@@ -74,7 +77,8 @@ struct RootView: View {
                 case .settings: SettingsView()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .clipped()
             .background(DS.canvas)
         }
         .fontDesign(.rounded)
@@ -86,7 +90,7 @@ struct RootView: View {
         .alert("Données illisibles", isPresented: Binding(get: { model.loadError != nil }, set: { if !$0 { model.loadError = nil } })) {
             Button("Ouvrir les réglages") { model.screen = .settings }
         } message: { Text(model.loadError ?? "") }
-        .overlay(alignment: .bottom) { ToastView() }
+        .overlay(alignment: .bottom) { ToastView().animation(.spring(response: 0.35, dampingFraction: 0.8), value: model.toast) }
         .onAppear {
             // Option de vérification visuelle : -cockpitAppearance light|dark
             let args = ProcessInfo.processInfo.arguments

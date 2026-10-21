@@ -49,6 +49,7 @@ struct ExpensesView: View {
                 } primaryAction: { ids in if let id = ids.first { editing = model.ledger.expenses.first { $0.id == id } } }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationTitle("Dépenses")
         .toolbar { PeriodToolbar(); ToolbarItem { Button(action: newExpense) { Label("Nouvelle dépense", systemImage: "plus") }.help("Nouvelle dépense (⇧⌘N)") } }
         .sheet(item: $editing) { ExpenseEditor(expense: $0) }
@@ -68,6 +69,12 @@ struct ExpenseEditor: View {
     var body: some View {
         let exists = model.ledger.expenses.contains { $0.id == expense.id }
         VStack(spacing: 0) {
+            HStack(spacing: DS.Space.m) {
+                IconBubble(symbol: expense.category.symbol, tint: expense.category.tint, size: 34, filled: true)
+                Text(exists ? "Modifier la dépense" : "Nouvelle dépense").font(.title3.weight(.bold))
+                Spacer()
+            }
+            .padding([.horizontal, .top], DS.Space.l)
             Form {
                 LabeledContent("Montant TTC") { MoneyField(title: "Montant", value: $expense.amount).frame(width: 130) }
                 if model.ledger.profile.vatRegime == .redevable {
@@ -110,7 +117,7 @@ struct ExpenseEditor: View {
                 .keyboardShortcut(.defaultAction).disabled(!expense.amount.isPositive)
             }.padding(DS.Space.m)
         }
-        .frame(width: 460, height: 600)
+        .frame(width: 460, height: 560)
         .fileImporter(isPresented: $picking, allowedContentTypes: [.pdf, .image]) { result in
             guard case .success(let url) = result else { return }
             let access = url.startAccessingSecurityScopedResource()
@@ -169,7 +176,9 @@ struct ImportView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationTitle("Import bancaire")
+        .toolbar { ToolbarItem { Button { picking = true } label: { Label("Importer un CSV", systemImage: "square.and.arrow.down") } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: [.commaSeparatedText, .plainText, UTType(filenameExtension: "csv") ?? .data]) { result in
             guard case .success(let url) = result else { return }
             let access = url.startAccessingSecurityScopedResource()

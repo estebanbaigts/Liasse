@@ -13,7 +13,7 @@ struct ForecastView: View {
 
     var body: some View {
         let fe = model.forecast
-        let results = Scenario.allCases.map { fe.run($0, days: horizon) }
+        let results = Scenario.allCases.map { model.forecastResult($0, days: horizon) }
         let main = results.first { $0.scenario == focus }!
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Space.xl) {
@@ -92,7 +92,10 @@ struct ForecastView: View {
                     .foregroundStyle(e.kind == .expense ? DS.due : DS.reserve)
                     .symbolSize(40)
                     .annotation(position: .bottom, alignment: .leading, spacing: 4) {
-                        Text("\(e.label) · \(e.date.short)").font(.caption2).foregroundStyle(e.kind == .expense ? DS.due : DS.reserve).fixedSize()
+                        // Seules les échéances fiscales et sociales sont nommées : les dépenses restent des points.
+                        if e.kind != .expense {
+                            Text("\(e.label) · \(e.date.short)").font(.caption2.weight(.semibold)).foregroundStyle(DS.reserve).fixedSize()
+                        }
                     }
             }
             PointMark(x: .value("Date", focus.low.date), y: .value("Solde", NSDecimalNumber(decimal: focus.low.balance.decimal).doubleValue))

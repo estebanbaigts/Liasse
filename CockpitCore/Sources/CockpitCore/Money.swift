@@ -49,13 +49,20 @@ extension Sequence {
 }
 
 public enum MoneyFormat {
+    // Les NumberFormatter sont coûteux à créer : un seul par usage, réutilisé partout.
+    static let currencyCents: NumberFormatter = {
+        let f = NumberFormatter(); f.locale = Locale(identifier: "fr_FR"); f.numberStyle = .currency; f.currencyCode = "EUR"
+        f.maximumFractionDigits = 2; f.minimumFractionDigits = 2; return f
+    }()
+    static let currencyWhole: NumberFormatter = {
+        let f = NumberFormatter(); f.locale = Locale(identifier: "fr_FR"); f.numberStyle = .currency; f.currencyCode = "EUR"
+        f.maximumFractionDigits = 0; f.minimumFractionDigits = 0; return f
+    }()
+    nonisolated(unsafe) static var percentFormatters: [Int: NumberFormatter] = [:]
+    static let lock = NSLock()
+
     public static func string(_ m: Money, showCents: Bool = true) -> String {
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.numberStyle = .currency
-        f.currencyCode = "EUR"
-        f.maximumFractionDigits = showCents ? 2 : 0
-        f.minimumFractionDigits = showCents ? 2 : 0
+        let f = showCents ? currencyCents : currencyWhole
         return f.string(from: NSDecimalNumber(decimal: m.decimal)) ?? "\(m.decimal) €"
     }
 
@@ -86,11 +93,12 @@ public enum MoneyFormat {
     }
 
     public static func percent(_ rate: Decimal, digits: Int = 1) -> String {
-        let f = NumberFormatter()
-        f.locale = Locale(identifier: "fr_FR")
-        f.numberStyle = .percent
-        f.maximumFractionDigits = digits
-        f.minimumFractionDigits = 0
+        lock.lock(); defer { lock.unlock() }
+        let f = percentFormatters[digits] ?? {
+            let f = NumberFormatter(); f.locale = Locale(identifier: "fr_FR"); f.numberStyle = .percent
+            f.maximumFractionDigits = digits; f.minimumFractionDigits = 0
+            percentFormatters[digits] = f; return f
+        }()
         return f.string(from: NSDecimalNumber(decimal: rate)) ?? "\(rate)"
     }
 }

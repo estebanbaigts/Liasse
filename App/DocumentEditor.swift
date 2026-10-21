@@ -34,30 +34,48 @@ struct DocumentEditor: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Space.l) {
-                    Form {
-                        HStack {
-                            Picker("Client", selection: $clientId) {
-                                Text("Choisir…").tag(UUID?.none)
-                                ForEach(model.ledger.clients) { Text($0.name).tag(UUID?.some($0.id)) }
+                    Card {
+                        Grid(alignment: .leading, horizontalSpacing: DS.Space.l, verticalSpacing: DS.Space.m) {
+                            GridRow {
+                                Text("Client").foregroundStyle(.secondary)
+                                HStack {
+                                    Picker("Client", selection: $clientId) {
+                                        Text("Choisir…").tag(UUID?.none)
+                                        ForEach(model.ledger.clients) { Text($0.name).tag(UUID?.some($0.id)) }
+                                    }
+                                    .labelsHidden().frame(maxWidth: 280)
+                                    Button("Nouveau client…") { addingClient = true }
+                                }
                             }
-                            Button("Nouveau client…") { addingClient = true }
-                        }
-                        Picker("Mission", selection: $missionId) {
-                            Text("Aucune").tag(UUID?.none)
-                            ForEach(model.ledger.missions.filter { clientId == nil || $0.clientId == clientId }) { Text($0.title).tag(UUID?.some($0.id)) }
-                        }
-                        .onChange(of: missionId) { applyMissionRate() }
-                        if isQuote {
-                            DatePicker("Date", selection: $date, displayedComponents: .date)
-                            DatePicker("Valable jusqu'au", selection: $secondDate, in: date..., displayedComponents: .date)
-                        } else {
-                            DatePicker("Échéance", selection: $secondDate, in: model.today..., displayedComponents: .date)
-                            Text("La date d'émission sera celle du jour où tu émettras la facture.").font(.caption).foregroundStyle(.secondary)
+                            GridRow {
+                                Text("Mission").foregroundStyle(.secondary)
+                                Picker("Mission", selection: $missionId) {
+                                    Text("Aucune").tag(UUID?.none)
+                                    ForEach(model.ledger.missions.filter { clientId == nil || $0.clientId == clientId }) { Text($0.title).tag(UUID?.some($0.id)) }
+                                }
+                                .labelsHidden().frame(maxWidth: 280)
+                                .onChange(of: missionId) { applyMissionRate() }
+                            }
+                            if isQuote {
+                                GridRow {
+                                    Text("Date").foregroundStyle(.secondary)
+                                    DatePicker("Date", selection: $date, displayedComponents: .date).labelsHidden()
+                                }
+                                GridRow {
+                                    Text("Valable jusqu'au").foregroundStyle(.secondary)
+                                    DatePicker("Valable jusqu'au", selection: $secondDate, in: date..., displayedComponents: .date).labelsHidden()
+                                }
+                            } else {
+                                GridRow {
+                                    Text("Échéance").foregroundStyle(.secondary)
+                                    HStack(spacing: DS.Space.m) {
+                                        DatePicker("Échéance", selection: $secondDate, in: model.today..., displayedComponents: .date).labelsHidden()
+                                        Text("La date d'émission sera celle du jour où tu émettras la facture.").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
                         }
                     }
-                    .formStyle(.grouped)
-                    .scrollDisabled(true)
-                    .frame(height: isQuote ? 220 : 200)
 
                     VStack(alignment: .leading, spacing: DS.Space.s) {
                         SectionTitle("Prestations")
@@ -216,8 +234,8 @@ struct QuotesView: View {
             Button("Modifier") { editing = q }
             Button("Finaliser") { model.update("Devis \(q.clientId == nil ? "" : "finalisé et numéroté").") { try $0.finalizeQuote(id: q.id, on: model.today) } }
         } else if q.status == .sent {
-            Button("Accepté") { setStatus(q, .accepted) }
-            Button("Refusé") { setStatus(q, .refused) }
+            Button("Marquer accepté") { setStatus(q, .accepted) }
+            Button("Marquer refusé") { setStatus(q, .refused) }
         } else if q.status == .accepted {
             Button("Convertir en facture") {
                 var newId: UUID?
