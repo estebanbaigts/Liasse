@@ -1,0 +1,9 @@
+// ─── Seul endroit à modifier pour la signature ─────────────────────────────
+// Phase 1 (sans compte développeur) : laisser vide, variante "Local".
+// Phase 2 (avec ton équipe Apple) :
+//   DEVELOPMENT_TEAM = ABCDE12345
+//   COCKPIT_APP_GROUP = ABCDE12345.fr.cockpit.shared
+//   COCKPIT_ENTITLEMENTS_VARIANT = AppGroup
+DEVELOPMENT_TEAM =
+COCKPIT_APP_GROUP =
+COCKPIT_ENTITLEMENTS_VARIANT = Local

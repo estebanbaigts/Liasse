@@ -1,0 +1,67 @@
+name: Cockpit
+options:
+  bundleIdPrefix: fr.cockpit
+  deploymentTarget: { macOS: "15.0" }
+  developmentLanguage: fr
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+packages:
+  CockpitCore: { path: CockpitCore }
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: YES
+targets:
+  Cockpit:
+    type: application
+    platform: macOS
+    sources: [App, Shared]
+    dependencies:
+      - package: CockpitCore
+      - target: CockpitWidgetExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fr.cockpit.app
+        PRODUCT_NAME: Cockpit
+        CODE_SIGN_ENTITLEMENTS: Config/App-$(COCKPIT_ENTITLEMENTS_VARIANT).entitlements
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Cockpit
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Cockpit
+        CockpitAppGroup: $(COCKPIT_APP_GROUP)
+        LSApplicationCategoryType: public.app-category.finance
+        CFBundleURLTypes:
+          - CFBundleURLName: fr.cockpit.app
+            CFBundleURLSchemes: [cockpit]
+  CockpitWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources: [Widget, Shared]
+    dependencies:
+      - package: CockpitCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fr.cockpit.app.widget
+        PRODUCT_NAME: CockpitWidgetExtension
+        CODE_SIGN_ENTITLEMENTS: Config/Widget-$(COCKPIT_ENTITLEMENTS_VARIANT).entitlements
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Cockpit
+        CockpitAppGroup: $(COCKPIT_APP_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+schemes:
+  Cockpit:
+    build: { targets: { Cockpit: all } }
+    test: { targets: [] }
+    run: { config: Debug }

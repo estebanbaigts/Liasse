@@ -1,0 +1,4 @@
+build/
+*.xcodeproj/xcuserdata/
+.build/
+.impeccable/hook.cache.json

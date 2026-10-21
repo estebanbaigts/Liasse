@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "maquettes/index.html"
+        ],
+        "createdAt": "2026-10-21T15:51:57.795Z",
+        "reason": "Claude: 11px labels mirror macOS native caption/secondary sizes in a mock of a native Mac app; body text is 13px (macOS body size)"
+      },
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          "maquettes/index.html"
+        ],
+        "createdAt": "2026-10-21T15:52:26.193Z",
+        "reason": "Claude: mock macOS window frames contain native grouped lists and desktop widgets by design; the outer frame represents the OS window, not a card"
+      }
+    ]
+  }
+}

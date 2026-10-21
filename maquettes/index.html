@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cockpit — 8 directions</title>
+<style>
+:root{
+  --bg:#ececee; --win:#ffffff; --side:#f4f4f6; --line:rgba(0,0,0,.09); --line2:rgba(0,0,0,.05);
+  --ink:#1d1d1f; --ink2:#6e6e73; --ink3:#737378;
+  --in:#1f8a4c; --res:#b4690e; --out:#c2372b; --due:#3c5bd6; --accent:#0a66d8;
+  --in-bg:rgba(31,138,76,.1); --res-bg:rgba(180,105,14,.11); --out-bg:rgba(194,55,43,.09); --due-bg:rgba(60,91,214,.1);
+  --sel:rgba(10,102,216,.12); --shadow:0 18px 50px rgba(0,0,0,.14),0 2px 6px rgba(0,0,0,.08);
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#141416; --win:#1e1e20; --side:#252528; --line:rgba(255,255,255,.1); --line2:rgba(255,255,255,.05);
+  --ink:#f5f5f7; --ink2:#a1a1a6; --ink3:#929297;
+  --in:#3fbf72; --res:#e39a3b; --out:#ff6b5e; --due:#7d97ff; --accent:#3d8bff;
+  --in-bg:rgba(63,191,114,.14); --res-bg:rgba(227,154,59,.15); --out-bg:rgba(255,107,94,.13); --due-bg:rgba(125,151,255,.15);
+  --sel:rgba(61,139,255,.2); --shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);
+}}
+:root[data-theme=dark]{
+  --bg:#141416; --win:#1e1e20; --side:#252528; --line:rgba(255,255,255,.1); --line2:rgba(255,255,255,.05);
+  --ink:#f5f5f7; --ink2:#a1a1a6; --ink3:#929297;
+  --in:#3fbf72; --res:#e39a3b; --out:#ff6b5e; --due:#7d97ff; --accent:#3d8bff;
+  --in-bg:rgba(63,191,114,.14); --res-bg:rgba(227,154,59,.15); --out-bg:rgba(255,107,94,.13); --due-bg:rgba(125,151,255,.15);
+  --sel:rgba(61,139,255,.2); --shadow:0 18px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+::selection{background:var(--sel)}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.in{color:var(--in)} .res{color:var(--res)} .out{color:var(--out)} .due{color:var(--due)} .mut{color:var(--ink2)} .mut3{color:var(--ink3)}
+
+/* page chrome */
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);border-bottom:1px solid var(--line);padding:14px 16px}
+.top-in{max-width:1240px;margin:0 auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.top h1{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-right:auto}
+.top h1 span{color:var(--ink2);font-weight:400}
+.seg{display:flex;flex-wrap:wrap;gap:2px;background:var(--line2);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{font:inherit;font-size:12px;border:0;background:none;color:var(--ink2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--win);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+main{max-width:1240px;margin:0 auto;padding:28px 16px 60px}
+.intro{display:flex;justify-content:space-between;gap:24px;align-items:baseline;margin-bottom:18px;flex-wrap:wrap}
+.intro h2{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.intro p{color:var(--ink2);max-width:62ch}
+.note{margin-top:14px;color:var(--ink3);font-size:12px}
+section.v{display:none} section.v.on{display:block}
+
+/* window */
+.win{background:var(--win);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line);min-height:660px;display:flex;flex-direction:column}
+.bar{height:44px;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);flex-shrink:0}
+.lights{display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.bar .title{font-weight:600;font-size:13px}
+.bar .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--ink);background:var(--win)}
+.pill.pri{background:var(--accent);color:#fff;border-color:transparent}
+.body{display:flex;flex:1;min-height:0}
+.side{width:212px;background:var(--side);border-right:1px solid var(--line);padding:10px 10px;flex-shrink:0}
+.side h6{font-size:11px;font-weight:600;color:var(--ink3);padding:12px 8px 4px}
+.side a{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px}
+.side a.on{background:var(--sel)}
+.side a .c{margin-left:auto;font-size:11px;color:var(--ink2)}
+.side svg{width:15px;height:15px;stroke:var(--accent);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.content{flex:1;min-width:0;overflow:hidden}
+.pad{padding:28px 34px}
+.row{display:flex;gap:28px}
+.rule{border-top:1px solid var(--line)}
+.lbl{font-size:12px;color:var(--ink2)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl td,.tbl th{padding:8px 0;border-bottom:1px solid var(--line2);text-align:left;font-weight:400}
+.tbl th{font-size:11px;color:var(--ink3);font-weight:500}
+.tbl .r{text-align:right}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500}
+.tag.out{background:var(--out-bg)} .tag.res{background:var(--res-bg)} .tag.due{background:var(--due-bg)} .tag.in{background:var(--in-bg)}
+.est{font-size:11px;color:var(--ink3);border:1px dashed var(--line);border-radius:4px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+
+/* V1 */
+.v1 .sentence{font-size:34px;line-height:1.18;font-weight:600;letter-spacing:-.025em;max-width:22ch}
+.v1 .eq{display:flex;align-items:flex-end;gap:18px;margin-top:30px;flex-wrap:wrap}
+.v1 .eq .t{display:flex;flex-direction:column;gap:2px}
+.v1 .eq .t b{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.v1 .eq .op{font-size:20px;color:var(--ink3);padding-bottom:2px}
+.v1 .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;margin-top:38px}
+.v1 h3{font-size:13px;font-weight:600;margin-bottom:6px}
+
+/* V2 cascade */
+.v2 .wf{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;align-items:end;height:250px;margin-top:20px;border-bottom:1px solid var(--line);padding:0 4px}
+.v2 .wf .c{position:relative;height:100%}
+.v2 .wf .b{position:absolute;left:0;right:0;border-radius:4px}
+.v2 .wf .v{position:absolute;left:0;right:0;font-size:12px;font-weight:600;text-align:center}
+.v2 .wfl{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:8px 4px 0;font-size:12px;color:var(--ink2);text-align:center}
+.v2 .big{font-size:44px;font-weight:600;letter-spacing:-.03em}
+
+/* V3 envelopes */
+.v3 .stack{display:flex;height:56px;border-radius:8px;overflow:hidden;margin:18px 0 10px;gap:2px}
+.v3 .stack div{display:flex;align-items:flex-end;padding:8px 10px;font-size:11px;font-weight:600;color:#fff}
+.v3 .env{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);margin-top:22px}
+.v3 .env>div{padding:16px 16px 18px 0;border-right:1px solid var(--line2)}
+.v3 .env>div+div{padding-left:16px}
+.v3 .env>div:last-child{border-right:0}
+.v3 .env b{display:block;font-size:20px;font-weight:600;margin:4px 0 2px}
+
+/* V4 timeline */
+.v4 svg.chart{width:100%;height:280px;display:block}
+.v4 .scn{display:flex;gap:18px;font-size:12px;color:var(--ink2);margin-top:10px}
+
+/* V5 inbox */
+.v5 .list{width:360px;border-right:1px solid var(--line);flex-shrink:0}
+.v5 .item{padding:12px 18px;border-bottom:1px solid var(--line2);display:grid;grid-template-columns:1fr auto;gap:2px 10px}
+.v5 .item.on{background:var(--sel)}
+.v5 .item b{font-weight:600}
+.v5 .item small{font-size:12px;color:var(--ink2);grid-column:1/-1}
+.v5 .detail h2{font-size:22px;font-weight:600;letter-spacing:-.015em}
+.v5 .msg{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:16px;line-height:1.55;color:var(--ink)}
+
+/* V6 settings-like grouped */
+.v6 .content{background:var(--side)}
+.v6 .grp{background:var(--win);border:1px solid var(--line);border-radius:10px;margin-bottom:18px}
+.v6 .grp>div{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line2)}
+.v6 .grp>div:last-child{border-bottom:0}
+.v6 .gh{font-size:12px;font-weight:600;color:var(--ink2);margin:0 4px 6px}
+.v6 .chev{color:var(--ink3);margin-left:10px}
+
+/* V7 statement */
+.v7 .content{display:flex;justify-content:center}
+.v7 .paper{max-width:760px;width:100%;padding:40px 10px}
+.v7 h2{font-size:28px;font-weight:600;letter-spacing:-.02em}
+.v7 .st td{padding:7px 0}
+.v7 .st .tot td{border-top:1px solid var(--ink);border-bottom:0;font-weight:600;padding-top:10px}
+.v7 .st .sub td{color:var(--ink2);padding-left:14px}
+.v7 .two{display:grid;grid-template-columns:1fr 1fr;gap:44px;margin-top:30px}
+
+/* V8 widgets */
+.v8 .desk{flex:1;background:linear-gradient(160deg,#4d6b8a,#24384d 60%,#1a2633);position:relative;padding:22px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.v8 .w{background:rgba(250,250,252,.96);color:#1d1d1f;border-radius:20px;padding:14px 15px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+:root[data-theme=dark] .v8 .w{background:rgba(32,32,35,.96);color:#f5f5f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .v8 .w{background:rgba(32,32,35,.96);color:#f5f5f7}}
+.v8 .w.s{width:170px;height:170px}.v8 .w.m{width:360px;height:170px}.v8 .w.l{width:360px;height:376px}
+.v8 .w .k{font-size:11px;opacity:.72}
+.v8 .menu{position:absolute;right:22px;top:0;width:300px;background:var(--win);color:var(--ink);border-radius:0 0 12px 12px;box-shadow:var(--shadow);padding:14px}
+.v8 .menubar{height:26px;background:rgba(255,255,255,.18);display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:0 14px;color:#fff;font-size:12px;font-weight:500}
+
+@media (max-width:900px){
+  .side{display:none}
+  .v1 .cols,.v7 .two{grid-template-columns:1fr}
+  .v5 .list{width:100%} .v5 .detail{display:none}
+  .v3 .env{grid-template-columns:1fr 1fr}
+  .pad{padding:20px}
+  .v5 .bar .sp{display:none}
+  .v8 .menu{position:static;width:100%;margin-top:10px}
+}
+@media (prefers-reduced-motion:no-preference){ section.v.on .win{animation:rise .32s cubic-bezier(.16,1,.3,1)} }
+@keyframes rise{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <h1>Cockpit <span>— 8 directions pour le tableau de bord</span></h1>
+  <div class="seg" role="group" aria-label="Direction" id="tabs"></div>
+  <div class="seg" role="group" aria-label="Apparence">
+    <button data-th="auto" aria-pressed="true">Auto</button><button data-th="light" aria-pressed="false">Clair</button><button data-th="dark" aria-pressed="false">Sombre</button>
+  </div>
+</div></header>
+<main>
+<div class="intro"><h2 id="vt"></h2><p id="vd"></p></div>
+
+<!-- shared sidebar -->
+<template id="side">
+  <nav class="side" aria-label="Navigation">
+    <a class="on" href="#"><svg viewBox="0 0 16 16"><path d="M2 9.5 8 3l6 6.5M4 8v5.5h8V8"/></svg>Aujourd'hui</a>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M2 12.5 6 8l3 2.5 5-6"/></svg>Prévisions</a>
+    <a href="#"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.5M8 10.8v.2"/></svg>Conseils<span class="c">4</span></a>
+    <h6>Ventes</h6>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M4 2h6l2.5 2.5V14H4zM6 7h4.5M6 10h4.5"/></svg>Factures<span class="c">3</span></a>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M4 2h8v12H4zM6 5.5h4M6 8.5h4"/></svg>Devis</a>
+    <a href="#"><svg viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 14c.6-3 2.6-4.5 5-4.5s4.4 1.5 5 4.5"/></svg>Clients</a>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M2.5 5h11v8.5h-11zM5.5 5V3h5v2"/></svg>Missions</a>
+    <h6>Argent</h6>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M2 4.5h12v8H2zM2 7.5h12"/></svg>Dépenses</a>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M3 6.5 8 2.5l5 4M4 7v6h8V7M7 13v-3h2v3"/></svg>Réserves &amp; impôts<span class="c">1</span></a>
+    <a href="#"><svg viewBox="0 0 16 16"><path d="M8 2.5v8M5 7.5l3 3 3-3M3 13.5h10"/></svg>Import bancaire</a>
+  </nav>
+</template>
+
+<!-- 1 -->
+<section class="v v1" data-t="La phrase" data-d="Une phrase répond à la question principale, puis une équation montre d'où vient le chiffre. Très calme et très lisible : on comprend sans lire un seul graphique.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Aujourd'hui</span><div class="sp"><span class="pill">Octobre 2026 ▾</span><span class="pill pri">Nouvelle facture</span></div></div>
+<div class="body"><slot-side></slot-side><div class="content pad">
+  <p class="lbl">Mercredi 21 octobre</p>
+  <p class="sentence" style="margin-top:6px">Tu peux utiliser <span class="in">4 547 €</span> ce mois-ci, une fois tes réserves mises de côté.</p>
+  <div class="eq num">
+    <div class="t"><span class="lbl">Encaissé en octobre</span><b>7 450,00 €</b></div><span class="op">−</span>
+    <div class="t"><span class="lbl">Dépenses payées</span><b>612,00 €</b></div><span class="op">−</span>
+    <div class="t"><span class="lbl">À réserver <span class="est">estimation</span></span><b class="res">2 290,88 €</b></div><span class="op">=</span>
+    <div class="t"><span class="lbl">Disponible</span><b class="in">4 547,12 €</b></div>
+  </div>
+  <p class="mut" style="margin-top:10px;font-size:12px">+8 % d'encaissements par rapport à septembre · 9 800 € facturés, dont 4 150 € pas encore payés.</p>
+  <div class="cols">
+    <div><h3>On te doit</h3>
+      <table class="tbl num"><tr><td>Studio Hélice · F-2026-0042</td><td><span class="tag out">en retard de 18 j</span></td><td class="r">1 200,00 €</td></tr>
+      <tr><td>Maison Ferrand · F-2026-0044</td><td><span class="tag out">en retard de 4 j</span></td><td class="r">450,00 €</td></tr>
+      <tr><td>Atelier Nord · F-2026-0046</td><td><span class="tag due">échéance 14 nov.</span></td><td class="r">2 500,00 €</td></tr></table></div>
+    <div><h3>Prochaines échéances</h3>
+      <table class="tbl num"><tr><td>Déclaration URSSAF T3<br><span class="mut" style="font-size:12px">2 novembre · provisionnée</span></td><td class="r">4 953,60 €</td></tr>
+      <tr><td>CFE 2026<br><span class="mut" style="font-size:12px">15 décembre · montant de l'avis</span></td><td class="r">412,00 €</td></tr>
+      <tr><td>Logiciel compta (annuel)<br><span class="mut" style="font-size:12px">3 décembre · prévue</span></td><td class="r">240,00 €</td></tr></table></div>
+  </div>
+</div></div></div>
+</section>
+
+<!-- 2 -->
+<section class="v v2" data-t="La cascade" data-d="Un graphique en cascade, du facturé jusqu'au disponible : chaque marche est une catégorie qu'on peut ouvrir. Idéal pour voir ce qui « mange » ton chiffre d'affaires.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Aujourd'hui</span><div class="sp"><span class="pill">Mois · Trimestre · Année</span></div></div>
+<div class="body"><slot-side></slot-side><div class="content pad">
+  <div class="row" style="align-items:flex-end;justify-content:space-between;flex-wrap:wrap">
+    <div><p class="lbl">Disponible en octobre</p><p class="big num in">4 547,12 €</p></div>
+    <p class="mut" style="max-width:40ch">Du facturé au disponible : 4 150 € attendent encore d'être payés et ne sont jamais comptés comme de l'argent à toi.</p>
+  </div>
+  <div class="wf num" aria-label="Cascade du facturé au disponible">
+    <div class="c"><div class="b" style="bottom:0;height:92%;background:var(--ink3);opacity:.45"></div><div class="v" style="bottom:93%">9 800 €</div></div>
+    <div class="c"><div class="b" style="bottom:53%;height:39%;background:var(--due);opacity:.8;background-image:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.25) 5px 7px)"></div><div class="v due" style="bottom:93%">−4 150 €</div></div>
+    <div class="c"><div class="b" style="bottom:0;height:53%;background:var(--in);opacity:.85"></div><div class="v in" style="bottom:54%">7 450 € ¹</div></div>
+    <div class="c"><div class="b" style="bottom:47.3%;height:5.7%;background:var(--out)"></div><div class="v out" style="bottom:54%">−612 €</div></div>
+    <div class="c"><div class="b" style="bottom:25.7%;height:21.6%;background:var(--res)"></div><div class="v res" style="bottom:48%">−2 291 €</div></div>
+    <div class="c"><div class="b" style="bottom:0;height:25.7%;background:var(--in)"></div><div class="v in" style="bottom:27%">4 547 €</div></div>
+  </div>
+  <div class="wfl"><span>Facturé</span><span>Pas encore payé</span><span>Encaissé</span><span>Dépenses payées</span><span>Réserves estimées</span><span>Disponible</span></div>
+  <p class="note">¹ Encaissé = paiements reçus en octobre, y compris 1 800 € d'une facture de septembre. Les barres ne sont pas à l'échelle exacte dans cette maquette.</p>
+  <table class="tbl num" style="margin-top:22px"><tr><th>Réserves estimées</th><th>Base</th><th>Taux</th><th class="r">Montant</th></tr>
+  <tr><td>Cotisations URSSAF</td><td>7 450 € encaissés</td><td>25,6 %</td><td class="r">1 907,20 €</td></tr>
+  <tr><td>Formation professionnelle <span class="tag res">à vérifier</span></td><td>7 450 € encaissés</td><td>0,2 %</td><td class="r">14,90 €</td></tr>
+  <tr><td>Impôt sur le revenu</td><td>4 917 € (après abattement de 34 %)</td><td>7,5 % (ton taux PAS)</td><td class="r">368,78 €</td></tr></table>
+</div></div></div>
+</section>
+
+<!-- 3 -->
+<section class="v v3" data-t="Les enveloppes" data-d="Ton compte en banque, découpé en enveloppes virtuelles : URSSAF, impôt, échéances annuelles et argent libre. On voit tout de suite si les réserves couvrent ce qui arrive.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Aujourd'hui</span><div class="sp"><span class="pill">Rapprocher un paiement</span></div></div>
+<div class="body"><slot-side></slot-side><div class="content pad">
+  <p class="lbl">Sur ton compte pro (solde saisi le 20 oct.)</p>
+  <p style="font-size:30px;font-weight:600;letter-spacing:-.02em" class="num">18 940,00 €</p>
+  <div class="stack num" role="img" aria-label="Répartition : URSSAF 6 861 €, impôt 1 107 €, annuelles 652 €, libre 10 320 €">
+    <div style="flex:6861;background:var(--res)">URSSAF</div>
+    <div style="flex:1107;background:color-mix(in srgb,var(--res) 70%,var(--out))">Impôt</div>
+    <div style="flex:652;background:var(--due)">Ann.</div>
+    <div style="flex:10320;background:var(--in)">Libre</div>
+  </div>
+  <p class="mut" style="font-size:12px">Les enveloppes sont virtuelles : aucun argent ne bouge tant que tu n'as pas payé une obligation.</p>
+  <div class="env num">
+    <div><span class="lbl"><span class="dot" style="background:var(--res)"></span>URSSAF + CFP</span><b>6 861,10 €</b><span class="mut" style="font-size:12px">couvre T3 (4 953,60 € le 2 nov.) et T4 en cours</span></div>
+    <div><span class="lbl"><span class="dot" style="background:color-mix(in srgb,var(--res) 70%,var(--out))"></span>Impôt sur le revenu</span><b>1 106,34 €</b><span class="mut" style="font-size:12px">estimation, taux PAS 7,5 %</span></div>
+    <div><span class="lbl"><span class="dot" style="background:var(--due)"></span>Échéances annuelles</span><b>652,00 €</b><span class="mut" style="font-size:12px">CFE 412 € · logiciel 240 €</span></div>
+    <div><span class="lbl"><span class="dot" style="background:var(--in)"></span>Libre</span><b class="in">10 320,56 €</b><span class="mut" style="font-size:12px">dont 4 547 € gagnés ce mois</span></div>
+  </div>
+  <div class="rule" style="margin-top:8px;padding-top:16px">
+    <p style="font-weight:600;margin-bottom:6px">Dernier paiement reçu · Atelier Nord, 2 400 € le 18 oct.</p>
+    <p class="mut">Répartition proposée : 614,40 € URSSAF · 4,80 € CFP · 118,80 € impôt · <span class="in">1 662,00 € libres</span>. <a href="#" style="color:var(--accent)">Voir le calcul</a></p>
+  </div>
+</div></div></div>
+</section>
+
+<!-- 4 -->
+<section class="v v4" data-t="La ligne du temps" data-d="La trésorerie projetée sur 90 jours, avec les échéances posées sur l'axe. Le point bas et les trois scénarios sont le cœur de l'écran : on regarde devant plutôt que derrière.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Aujourd'hui</span><div class="sp"><span class="pill">30 j · 60 j · <b>90 j</b></span></div></div>
+<div class="body"><slot-side></slot-side><div class="content pad">
+  <div class="row" style="flex-wrap:wrap;gap:40px">
+    <div><p class="lbl">Aujourd'hui sur le compte</p><p style="font-size:24px;font-weight:600" class="num">18 940 €</p></div>
+    <div><p class="lbl">Point bas prévu (réaliste)</p><p style="font-size:24px;font-weight:600" class="num res">12 180 € <span style="font-size:13px;font-weight:400" class="mut">le 3 février</span></p></div>
+    <div><p class="lbl">Dans 90 jours</p><p style="font-size:24px;font-weight:600" class="num">16 720 €</p></div>
+  </div>
+  <svg class="chart" viewBox="0 0 900 280" role="img" aria-label="Trésorerie projetée sur 90 jours">
+    <g stroke="var(--line)" stroke-width="1"><line x1="0" y1="40" x2="900" y2="40"/><line x1="0" y1="120" x2="900" y2="120"/><line x1="0" y1="200" x2="900" y2="200"/></g>
+    <g fill="var(--ink3)" font-size="11"><text x="0" y="34">20 000 €</text><text x="0" y="114">15 000 €</text><text x="0" y="194">10 000 €</text></g>
+    <path d="M60 62 L140 75 L150 141 L300 112 L380 104 L390 98 L520 120 L600 128 L700 100 L760 152 L860 116" fill="none" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <path d="M60 62 L140 80 L150 146 L300 130 L380 125 L390 132 L520 150 L600 160 L700 132 L760 170 L860 140" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <path d="M60 62 L140 86 L150 152 L300 150 L380 150 L390 158 L520 185 L600 196 L700 178 L760 206 L860 190" fill="none" stroke="var(--res)" stroke-width="1.5" stroke-dasharray="2 3"/>
+    <line x1="60" y1="30" x2="60" y2="250" stroke="var(--ink)" stroke-width="1"/><text x="64" y="26" font-size="11" fill="var(--ink)">aujourd'hui</text>
+    <g font-size="11"><circle cx="150" cy="146" r="4" fill="var(--res)"/><text x="156" y="166" fill="var(--res)">URSSAF T3 · 2 nov.</text>
+    <circle cx="390" cy="132" r="4" fill="var(--due)"/><text x="396" y="122" fill="var(--due)">CFE · 15 déc.</text>
+    <circle cx="760" cy="170" r="4" fill="var(--res)"/><text x="680" y="196" fill="var(--res)">URSSAF T4 · 1er fév.</text></g>
+    <g fill="var(--ink3)" font-size="11"><text x="60" y="270">21 oct.</text><text x="330" y="270">20 nov.</text><text x="560" y="270">20 déc.</text><text x="800" y="270">19 janv.</text></g>
+  </svg>
+  <div class="scn"><span><span class="dot" style="background:var(--ink3)"></span>Optimiste : tout payé à l'échéance</span><span><span class="dot" style="background:var(--accent)"></span>Réaliste : retard moyen de 12 j</span><span><span class="dot" style="background:var(--res)"></span>Prudent : factures en retard exclues</span><a href="#" style="margin-left:auto;color:var(--accent)">Modifier les hypothèses</a></div>
+  <p class="note">Une prévision n'est jamais ajoutée à l'encaissé : la ligne part du solde réel saisi et ajoute uniquement les entrées et sorties à venir.</p>
+</div></div></div>
+</section>
+
+<!-- 5 -->
+<section class="v v5" data-t="La boîte à actions" data-d="Comme Mail : à gauche, ce qui demande ton attention, trié par impact ; à droite, le détail et l'action prête. Les chiffres clés restent en en-tête. Pour ceux qui veulent « traiter » plutôt que « regarder ».">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">À traiter</span><div class="sp num" style="gap:18px;font-size:12px"><span class="mut">Disponible <b class="in">4 547 €</b></span><span class="mut">À réserver <b class="res">2 291 €</b></span><span class="mut">On te doit <b style="color:var(--ink)">4 150 €</b></span></div></div>
+<div class="body"><slot-side></slot-side>
+  <div class="list num">
+    <div class="item on"><b>Relancer Studio Hélice</b><span class="out">1 200 €</span><small>F-2026-0042 · en retard de 18 jours</small></div>
+    <div class="item"><b>Déclarer le 3ᵉ trimestre</b><span>4 954 €</span><small>URSSAF · avant le 2 novembre · provisionné</small></div>
+    <div class="item"><b>Relancer Maison Ferrand</b><span class="out">450 €</span><small>F-2026-0044 · en retard de 4 jours</small></div>
+    <div class="item"><b>Classer 3 opérations importées</b><span class="mut">−186 €</span><small>Relevé du 20 octobre</small></div>
+    <div class="item"><b>Groupe Ostral pèse 46 % de ton CA</b><span class="mut">info</span><small>Sur 12 mois glissants · fiabilité élevée</small></div>
+    <div class="item"><b>Abonnement « Notion Team » prévu depuis 9 mois</b><span class="mut">−96 €/an</span><small>Vérifie qu'il est toujours utile</small></div>
+  </div>
+  <div class="content pad detail">
+    <p class="lbl">Facture en retard</p>
+    <h2 style="margin-top:4px">Studio Hélice te doit 1 200,00 €</h2>
+    <p class="mut" style="margin-top:6px">F-2026-0042 émise le 2 sept., échéance le 3 oct. Aucun paiement reçu. Dernière relance : jamais.</p>
+    <div class="msg"><b>Objet :</b> Facture F-2026-0042 — échéance dépassée<br><br>Bonjour Camille,<br><br>Sauf erreur de ma part, la facture F-2026-0042 du 2 septembre (1 200,00 € TTC), arrivée à échéance le 3 octobre, n'a pas encore été réglée. Je te la joins à nouveau.<br><br>Peux-tu me confirmer la date de règlement prévue ?<br><br>Merci et à bientôt,</div>
+    <div class="row" style="gap:8px;margin-top:14px"><span class="pill pri">Copier le message</span><span class="pill">Ouvrir dans Mail</span><span class="pill">Marquer un paiement</span></div>
+    <p class="note">Rien n'est envoyé automatiquement : tu relis, puis tu envoies toi-même.</p>
+  </div>
+</div></div>
+</section>
+
+<!-- 6 -->
+<section class="v v6" data-t="Les listes natives" data-d="Inspiré des Réglages système : des groupes de lignes, un chevron pour aller au détail. C'est l'option la plus « Apple » et la plus sobre, avec un peu moins de hiérarchie visuelle.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Aujourd'hui</span></div>
+<div class="body"><slot-side></slot-side><div class="content pad num" style="max-width:none">
+  <div style="max-width:640px;margin:0 auto">
+    <div class="grp" style="padding:18px 16px;text-align:center"><p class="lbl">Disponible en octobre</p><p style="font-size:38px;font-weight:600;letter-spacing:-.03em" class="in">4 547,12 €</p><p class="mut" style="font-size:12px">après 612 € de dépenses et 2 291 € de réserves estimées</p></div>
+    <p class="gh">Revenus</p>
+    <div class="grp"><div><span>Facturé</span><span>9 800,00 €<span class="chev">›</span></span></div><div><span>Encaissé</span><span class="in">7 450,00 €<span class="chev">›</span></span></div><div><span>Pas encore payé</span><span>4 150,00 €<span class="chev">›</span></span></div><div><span>En retard <span class="tag out">2</span></span><span class="out">1 650,00 €<span class="chev">›</span></span></div></div>
+    <p class="gh">Obligations</p>
+    <div class="grp"><div><span>URSSAF T3 · 2 nov. <span class="tag due">à déclarer</span></span><span>4 953,60 €<span class="chev">›</span></span></div><div><span>Réserve du mois <span class="est">estimation</span></span><span class="res">2 290,88 €<span class="chev">›</span></span></div><div><span>CFE · 15 déc. <span class="tag res">à payer</span></span><span>412,00 €<span class="chev">›</span></span></div></div>
+    <p class="gh">Dépenses</p>
+    <div class="grp"><div><span>Payées en octobre</span><span>612,00 €<span class="chev">›</span></span></div><div><span>Prévues d'ici 30 jours</span><span class="mut">240,00 €<span class="chev">›</span></span></div></div>
+  </div>
+</div></div></div>
+</section>
+
+<!-- 7 -->
+<section class="v v7" data-t="Le relevé" data-d="Une page qui se lit comme un relevé mensuel bien composé : des lignes, des sous-totaux, un total souligné. Aucun graphique : rien que des chiffres justes, alignés. Pour ceux qui pensent comme un comptable.">
+<div class="win"><div class="bar"><div class="lights"><i></i><i></i><i></i></div><span class="title">Octobre 2026</span><div class="sp"><span class="pill">‹ Septembre</span><span class="pill">Exporter</span></div></div>
+<div class="body"><slot-side></slot-side><div class="content"><div class="paper num">
+  <p class="lbl">Relevé du 1er au 21 octobre 2026</p>
+  <h2>Il te reste 4 547,12 € à utiliser.</h2>
+  <table class="tbl st" style="margin-top:24px">
+    <tr><td>Paiements reçus</td><td class="r in">7 450,00 €</td></tr>
+    <tr class="sub"><td>Atelier Nord · F-2026-0039 et 0043</td><td class="r">4 200,00 €</td></tr>
+    <tr class="sub"><td>Groupe Ostral · F-2026-0041</td><td class="r">3 250,00 €</td></tr>
+    <tr><td>Dépenses payées</td><td class="r out">−612,00 €</td></tr>
+    <tr class="sub"><td>Logiciels, matériel, déplacements (7 opérations)</td><td class="r">−612,00 €</td></tr>
+    <tr><td>Réserves estimées <span class="est">estimation</span></td><td class="r res">−2 290,88 €</td></tr>
+    <tr class="sub"><td>URSSAF 25,6 % · CFP 0,2 % · impôt 7,5 % sur 66 %</td><td class="r">−2 290,88 €</td></tr>
+    <tr class="tot"><td>Disponible</td><td class="r">4 547,12 €</td></tr>
+  </table>
+  <div class="two">
+    <div><p style="font-weight:600;margin-bottom:4px">Hors relevé</p><table class="tbl"><tr><td>Facturé, pas encore payé</td><td class="r">4 150,00 €</td></tr><tr><td>dont en retard</td><td class="r out">1 650,00 €</td></tr><tr><td>Dépenses prévues (30 j)</td><td class="r">240,00 €</td></tr></table></div>
+    <div><p style="font-weight:600;margin-bottom:4px">Par rapport à septembre</p><table class="tbl"><tr><td>Encaissé</td><td class="r in">+8,0 %</td></tr><tr><td>Dépenses</td><td class="r out">+21,4 %</td></tr><tr><td>Taux journalier moyen</td><td class="r">560 €</td></tr></table></div>
+  </div>
+</div></div></div></div>
+</section>
+
+<!-- 8 -->
+<section class="v v8" data-t="Widgets d'abord" data-d="Le Mac comme tableau de bord : trois tailles de widget sur le bureau et un mini-panneau dans la barre des menus. L'app ne s'ouvre que pour facturer ou corriger. Les montants peuvent être masqués.">
+<div class="win"><div class="menubar"><span>◐ 4 547 €</span><span>mer. 21 oct. 14:32</span></div>
+<div class="desk num">
+  <div class="w s"><p class="k">Disponible</p><p style="font-size:26px;font-weight:600;letter-spacing:-.02em;margin-top:2px;color:var(--in)">4 547 €</p><p class="k" style="margin-top:14px">À réserver</p><p style="font-size:16px;font-weight:600;color:var(--res)">2 291 €</p><p style="font-size:11px;margin-top:12px;color:var(--res)">● URSSAF dans 12 j</p></div>
+  <div class="w m"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 18px">
+    <div><p class="k">Encaissé · octobre</p><p style="font-size:20px;font-weight:600">7 450 €</p></div>
+    <div><p class="k">Réserves estimées</p><p style="font-size:20px;font-weight:600;color:var(--res)">2 291 €</p></div>
+    <div><p class="k">Impayées</p><p style="font-size:15px;font-weight:600">4 150 € <span style="font-size:11px;font-weight:400;color:var(--out)">· 2 en retard</span></p></div>
+    <div><p class="k">Prochaine échéance</p><p style="font-size:15px;font-weight:600">2 nov. · URSSAF</p></div></div>
+    <p class="k" style="margin-top:12px">Mis à jour à 14:20</p></div>
+  <div class="w l"><p class="k">Trésorerie</p><p style="font-size:24px;font-weight:600">18 940 € <span style="font-size:12px;font-weight:400;opacity:.6">dont 4 547 € libres ce mois</span></p>
+    <svg viewBox="0 0 330 60" style="width:100%;height:60px;margin:10px 0"><path d="M0 40 L50 36 L100 30 L150 33 L200 22 L250 26 L330 14" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>
+    <p class="k">Prochaines échéances</p>
+    <table class="tbl" style="font-size:12px;margin-bottom:10px"><tr><td>URSSAF T3 · 2 nov.</td><td class="r">4 954 €</td></tr><tr><td>CFE · 15 déc.</td><td class="r">412 €</td></tr></table>
+    <p class="k">En attente de paiement</p>
+    <table class="tbl" style="font-size:12px"><tr><td>Atelier Nord</td><td class="r">2 500 €</td></tr><tr><td>Studio Hélice <span style="color:var(--out)">· retard</span></td><td class="r">1 200 €</td></tr><tr><td>Maison Ferrand <span style="color:var(--out)">· retard</span></td><td class="r">450 €</td></tr></table></div>
+  <div class="w s" style="display:flex;flex-direction:column;justify-content:space-between"><p class="k">Disponible</p><p style="font-size:26px;font-weight:600;letter-spacing:.08em">•••• €</p><p class="k">Montants masqués · clique pour ouvrir</p></div>
+  <div class="menu"><p class="lbl">Disponible ce mois</p><p style="font-size:24px;font-weight:600" class="in">4 547,12 €</p>
+    <table class="tbl" style="margin-top:8px"><tr><td>À réserver</td><td class="r res">2 290,88 €</td></tr><tr><td>On te doit</td><td class="r">4 150,00 €</td></tr><tr><td>URSSAF T3</td><td class="r">dans 12 j</td></tr></table>
+    <div class="row" style="gap:8px;margin-top:12px"><span class="pill">Marquer un paiement</span><span class="pill">Ouvrir Cockpit</span></div></div>
+</div></div>
+</section>
+
+<p class="note">Données fictives (clients, montants et taux PAS inventés) pour comparer les directions. Taux URSSAF 2026 : 25,6 % en BNC SSI d'après service-public.gouv.fr. Ces maquettes sont en HTML ; l'app finale sera en SwiftUI natif.</p>
+</main>
+<script>
+const side=document.getElementById('side').content;
+document.querySelectorAll('slot-side').forEach(s=>s.replaceWith(side.cloneNode(true)));
+const vs=[...document.querySelectorAll('section.v')], tabs=document.getElementById('tabs');
+const vt=document.getElementById('vt'), vd=document.getElementById('vd');
+function show(i){vs.forEach((v,j)=>v.classList.toggle('on',i===j));[...tabs.children].forEach((b,j)=>b.setAttribute('aria-pressed',i===j));
+  vt.textContent=(i+1)+'. '+vs[i].dataset.t; vd.textContent=vs[i].dataset.d; try{localStorage.setItem('v',i)}catch(e){} }
+vs.forEach((v,i)=>{const b=document.createElement('button');b.textContent=(i+1)+' '+v.dataset.t;b.onclick=()=>show(i);tabs.appendChild(b)});
+let cur=0;try{cur=+localStorage.getItem('v')||0}catch(e){} show(cur);
+document.addEventListener('keydown',e=>{const i=vs.findIndex(v=>v.classList.contains('on'));
+  if(e.key==='ArrowRight')show((i+1)%vs.length); if(e.key==='ArrowLeft')show((i+vs.length-1)%vs.length);});
+document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{const t=b.dataset.th;
+  if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.dataset.theme=t;
+  document.querySelectorAll('[data-th]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+</script>
+</body>
+</html>
