@@ -38,31 +38,37 @@ struct ObligationsView: View {
 
                 VStack(alignment: .leading, spacing: 0) {
                     SectionTitle("Échéances \(String(year))", trailing: AnyView(Stepper("", value: $year, in: 2020...2100).labelsHidden()))
-                    HStack {
-                        Text("Obligation").padding(.leading, 42).frame(maxWidth: .infinity, alignment: .leading)
-                        Text("Échéance").frame(width: 110, alignment: .leading)
-                        Text("Estimé").frame(width: 100, alignment: .trailing)
-                        Text("Déclaré").frame(width: 100, alignment: .trailing)
-                        Text("Payé").frame(width: 100, alignment: .trailing)
-                        Text("Statut").frame(width: 110, alignment: .trailing)
-                    }
-                    .font(.caption).foregroundStyle(.secondary).padding(.bottom, 4)
                     if obligations.isEmpty { Text("Aucune obligation calculée pour cette année.").foregroundStyle(.secondary).padding(.vertical, 8) }
                     ForEach(obligations) { o in
                         Button { selected = o } label: {
-                            HStack {
-                                IconBubble(symbol: o.kind.symbol, tint: o.status.color == .secondary ? DS.reserve : o.status.color, size: 30)
+                            HStack(spacing: DS.Space.m) {
+                                IconBubble(symbol: o.kind.symbol, tint: o.status.color == .secondary ? DS.reserve : o.status.color, size: 32)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(fin.tax.label(o)).fontWeight(.semibold)
-                                    if let b = o.base, o.kind != .cfe { Text("Base : \(b) encaissés").font(.caption).foregroundStyle(.secondary) }
-                                }.frame(maxWidth: .infinity, alignment: .leading)
-                                Text(o.dueDate.short).frame(width: 110, alignment: .leading)
-                                Text(o.estimated?.description ?? "—").monospacedDigit().foregroundStyle(.secondary).frame(width: 100, alignment: .trailing)
-                                Text(o.record?.declaredAmount?.description ?? "—").monospacedDigit().frame(width: 100, alignment: .trailing)
-                                Text(o.record?.paidAmount?.description ?? "—").monospacedDigit().foregroundStyle(o.record?.paidAmount != nil ? DS.income : .secondary).frame(width: 100, alignment: .trailing)
-                                StatusTag(text: o.status.label, color: o.status.color, symbol: o.status.symbol).frame(width: 120, alignment: .trailing)
+                                    Text(fin.tax.label(o)).fontWeight(.semibold).lineLimit(1)
+                                    Text(["Échéance \(o.dueDate.long)", o.base.flatMap { o.kind == .cfe ? nil : "base \($0)" }].compactMap { $0 }.joined(separator: " · "))
+                                        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                }
+                                .layoutPriority(1)
+                                Spacer(minLength: DS.Space.s)
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    if let paid = o.record?.paidAmount {
+                                        Amount(money: paid, font: .body.weight(.semibold), color: DS.income)
+                                        Text("payé").font(.caption).foregroundStyle(.secondary)
+                                    } else if let declared = o.record?.declaredAmount {
+                                        Amount(money: declared, font: .body.weight(.semibold))
+                                        Text("déclaré · estimé \(o.estimated?.description ?? "—")").font(.caption).foregroundStyle(.secondary)
+                                    } else if let est = o.estimated {
+                                        Amount(money: est, font: .body.weight(.semibold), color: .secondary)
+                                        Text("estimé").font(.caption).foregroundStyle(.secondary)
+                                    } else {
+                                        Text("—").foregroundStyle(.secondary)
+                                        Text("montant à vérifier").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                }
+                                .fixedSize()
+                                StatusTag(text: o.status.label, color: o.status.color, symbol: o.status.symbol).fixedSize()
                             }
-                            .padding(.vertical, 7)
+                            .padding(.vertical, 8).padding(.horizontal, 6)
                             .overlay(alignment: .bottom) { Rectangle().fill(DS.hairline).frame(height: 1) }
                             .contentShape(Rectangle())
                         }

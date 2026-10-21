@@ -47,6 +47,9 @@ final class AppModel {
     var pendingNew: Screen?
     func requestNew(_ s: Screen) { screen = s; pendingNew = s }
     var lastSaved: Date?
+    /// Badges de la barre latérale, recalculés seulement quand les données changent.
+    private(set) var urgentInsights = 0
+    private(set) var obligationsToHandle = 0
     private let fixedToday: Date?
 
     enum InvoiceFilter: String, CaseIterable, Identifiable {
@@ -108,7 +111,14 @@ final class AppModel {
         }
     }
 
+    func refreshBadges() {
+        let fin = finance
+        urgentInsights = InsightEngine(finance: fin, forecast: forecast).insights().filter { $0.urgency >= 2 }.count
+        obligationsToHandle = fin.allObligations().filter { ($0.status == .toDeclare || $0.status == .toVerify) && $0.period.start <= today }.count
+    }
+
     func publishSnapshot() {
+        refreshBadges()
         let snap = WidgetSnapshot.make(from: ledger, today: today)
         if SharedSnapshot.write(snap) { WidgetCenter.shared.reloadAllTimelines() }
     }

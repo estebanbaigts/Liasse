@@ -145,31 +145,14 @@ struct MissionsView: View {
                                actionTitle: "Nouvelle mission") { editing = Mission(title: "", clientId: model.ledger.clients.first?.id, dailyRate: model.ledger.profile.defaultDailyRate) }
                         .frame(height: 280)
                 } else {
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: DS.Space.m) {
                         SectionTitle("Missions")
-                        HStack { Text("Mission").frame(maxWidth: .infinity, alignment: .leading); col("Jours"); col("Facturé HT"); col("Encaissé HT"); col("Non facturé"); col("Marge éco."); col("TJM réel") }
-                            .font(.caption).foregroundStyle(.secondary).padding(.bottom, 4)
-                        ForEach(stats) { s in
-                            Button { editing = s.mission } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(s.mission.title).fontWeight(.medium)
-                                        Text("\(model.ledger.client(s.mission.clientId)?.name ?? "—") · \(s.mission.status.label) · \(s.mission.dailyRate)/j").font(.caption).foregroundStyle(.secondary)
-                                    }.frame(maxWidth: .infinity, alignment: .leading)
-                                    Text("\(NSDecimalNumber(decimal: s.mission.workedDays))/\(NSDecimalNumber(decimal: s.mission.plannedDays))").monospacedDigit().frame(width: 96, alignment: .trailing)
-                                    Amount(money: s.invoicedHT).frame(width: 96, alignment: .trailing)
-                                    Amount(money: s.collected).frame(width: 96, alignment: .trailing)
-                                    Amount(money: s.uninvoicedWork, color: s.uninvoicedWork.isPositive ? DS.reserve : .secondary).frame(width: 96, alignment: .trailing)
-                                    Amount(money: s.margin, color: s.margin.isNegative ? DS.outflow : nil).frame(width: 96, alignment: .trailing)
-                                    Text(s.effectiveDailyRate?.formattedShort ?? "—").monospacedDigit().frame(width: 96, alignment: .trailing)
-                                }
-                                .padding(.vertical, 7)
-                                .overlay(alignment: .bottom) { Rectangle().fill(DS.hairline).frame(height: 1) }
-                                .contentShape(Rectangle())
-                            }.buttonStyle(.plain)
+                        ForEach(Array(stats.enumerated()), id: \.element.id) { i, s in
+                            Button { editing = s.mission } label: { missionCard(s) }
+                                .buttonStyle(.plain).hoverLift().appear(i)
                         }
                         Text("Marge économique = encaissé HT − frais et commissions − dépenses liées à la mission. Elle ne réduit jamais la base de tes cotisations en micro-entreprise.")
-                            .font(.caption).foregroundStyle(.secondary).padding(.top, 6)
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 goalCalculator(fin)
@@ -182,7 +165,51 @@ struct MissionsView: View {
         .sheet(item: $editing) { MissionEditor(mission: $0) }
     }
 
-    func col(_ s: String) -> some View { Text(s).frame(width: 96, alignment: .trailing) }
+    func missionCard(_ s: FinanceEngine.MissionStats) -> some View {
+        let m = s.mission
+        let progress = m.plannedDays > 0 ? min(NSDecimalNumber(decimal: m.workedDays / m.plannedDays).doubleValue, 1) : 0
+        let tint: Color = m.status == .done ? DS.income : (m.status == .active ? DS.brandA : DS.due)
+        return Card(tint: tint) {
+            VStack(alignment: .leading, spacing: DS.Space.m) {
+                HStack(spacing: DS.Space.m) {
+                    Avatar(name: model.ledger.client(m.clientId)?.name ?? m.title, size: 36)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(m.title).font(.headline).lineLimit(1)
+                        Text("\(model.ledger.client(m.clientId)?.name ?? "Sans client") · \(m.dailyRate.formattedShort) / jour").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    StatusTag(text: m.status.label, color: tint, symbol: m.status == .done ? "checkmark" : (m.status == .active ? "play.fill" : "calendar"))
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(0.08))
+                            Capsule().fill(tint.gradient).frame(width: max(progress > 0 ? 8 : 0, g.size.width * progress))
+                        }
+                    }
+                    .frame(height: 8)
+                    Text("\(NSDecimalNumber(decimal: m.workedDays)) jours travaillés sur \(NSDecimalNumber(decimal: m.plannedDays)) prévus").font(.caption).foregroundStyle(.secondary)
+                }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: DS.Space.m)], alignment: .leading, spacing: DS.Space.s) {
+                    figure("Facturé HT", s.invoicedHT, nil)
+                    figure("Encaissé HT", s.collected, DS.income)
+                    figure("Non facturé", s.uninvoicedWork, s.uninvoicedWork.isPositive ? DS.reserve : .secondary)
+                    figure("Marge éco.", s.margin, s.margin.isNegative ? DS.outflow : nil)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("TJM réel").font(.caption).foregroundStyle(.secondary)
+                        Text(s.effectiveDailyRate?.formattedShort ?? "—").font(.body.weight(.semibold)).monospacedDigit()
+                    }
+                }
+            }
+        }
+    }
+
+    func figure(_ label: String, _ m: Money, _ color: Color?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            Amount(money: m, font: .body.weight(.semibold), color: color)
+        }
+    }
 
     func goalCalculator(_ fin: FinanceEngine) -> some View {
         let cal = Calendar.fr
@@ -190,17 +217,21 @@ struct MissionsView: View {
         let monthlyExp = Money(decimalEuros: fin.expensesPaid(in: last3).0.decimal / 3)
         let need = fin.revenueNeeded(netTarget: goalNet, monthlyExpenses: monthlyExp)
         var days = need.days; var r = Decimal(); NSDecimalRound(&r, &days, 1, .up)
-        return VStack(alignment: .leading, spacing: DS.Space.s) {
-            SectionTitle("Objectif de revenu")
-            HStack(spacing: DS.Space.s) {
-                Text("Pour garder")
-                MoneyField(title: "Net", value: $goalNet).frame(width: 110)
-                Text("par mois après cotisations, impôt estimé et dépenses, il te faut encaisser")
-                Amount(money: need.revenue, font: .body.weight(.semibold))
-                Text("HT, soit \(NSDecimalNumber(decimal: r)) jours à \(need.dailyRate.formattedShort).")
+        return Card(tint: DS.brandA) {
+            VStack(alignment: .leading, spacing: DS.Space.m) {
+                HStack(spacing: DS.Space.s) {
+                    IconBubble(symbol: "target", tint: DS.brandA, size: 30, filled: true)
+                    Text("Objectif de revenu").font(DS.Font.section)
+                    Spacer()
+                    Text("Net visé / mois").font(.callout).foregroundStyle(.secondary)
+                    MoneyField(title: "Net visé par mois", value: $goalNet).frame(width: 110)
+                }
+                (Text("Il te faut encaisser ") + Text(need.revenue.description).bold() + Text(" HT par mois, soit ") + Text("\(NSDecimalNumber(decimal: r)) jours").bold() + Text(" à \(need.dailyRate.formattedShort)."))
+                    .font(.title3)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Hypothèses : dépenses moyennes des 3 derniers mois (\(monthlyExp)), \(MoneyFormat.percent(1 - fin.netRatio(on: model.today), digits: 1)) de prélèvements estimés d'après ton profil, TJM moyen facturé sur 12 mois.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            Text("Hypothèses : dépenses moyennes des 3 derniers mois (\(monthlyExp)), \(MoneyFormat.percent(1 - fin.netRatio(on: model.today), digits: 1)) de prélèvements estimés d'après ton profil, TJM moyen facturé sur 12 mois.")
-                .font(.caption).foregroundStyle(.secondary)
         }
     }
 }

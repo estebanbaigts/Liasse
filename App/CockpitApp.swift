@@ -13,6 +13,7 @@ struct CockpitApp: App {
                 .frame(minWidth: 940, minHeight: 600)
         }
         .defaultSize(width: 1180, height: 760)
+        .defaultLaunchBehavior(.presented)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Nouvelle facture") { model.requestNew(.invoices) }
@@ -50,10 +51,10 @@ struct RootView: View {
         NavigationSplitView {
             List(selection: $model.screen) {
                 Section {
-                    row(.today); row(.forecast); row(.insights, badge: InsightEngine(finance: model.finance, forecast: model.forecast).insights().filter { $0.urgency >= 2 }.count)
+                    row(.today); row(.forecast); row(.insights, badge: model.urgentInsights)
                 }
                 Section("Ventes") { row(.invoices, badge: model.finance.overdueInvoices.count); row(.quotes); row(.clients); row(.missions) }
-                Section("Argent") { row(.expenses); row(.obligations, badge: model.finance.allObligations().filter { $0.status == .toDeclare || $0.status == .toVerify }.filter { $0.period.start <= model.today }.count); row(.importBank) }
+                Section("Argent") { row(.expenses); row(.obligations, badge: model.obligationsToHandle); row(.importBank) }
                 Section { row(.settings) }
             }
             .navigationSplitViewColumnWidth(min: 190, ideal: 212, max: 280)
@@ -97,7 +98,8 @@ struct RootView: View {
 
     func row(_ s: Screen, badge: Int = 0) -> some View {
         Label { Text(s.title).fontWeight(.medium) } icon: { IconBubble(symbol: s.filledSymbol, tint: s.tint, size: 22, filled: true) }
-            .tag(Optional(s)).badge(badge)
+            .badge(badge)
+            .tag(s)
     }
 }
 

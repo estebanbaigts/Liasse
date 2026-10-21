@@ -150,19 +150,23 @@ struct Avatar: View {
     }
 }
 
-/// Fond animé lent de la carte d'accueil (dégradé maillé). Figé si « Réduire les animations ».
+/// Fond animé lent de la carte d'accueil (dégradé maillé).
+/// Le dégradé glisse une fois à l'ouverture puis se fige : vivant sans consommer de processeur au repos.
 struct LivelyBackground: View {
     var colors: [Color]
+    @State private var phase = false
     @Environment(\.accessibilityReduceMotion) private var reduce
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduce)) { context in
-            let t = reduce ? 0 : context.date.timeIntervalSinceReferenceDate
-            let s = Float(sin(t * 0.35)) * 0.12, c = Float(cos(t * 0.28)) * 0.12
-            MeshGradient(width: 3, height: 3, points: [
-                [0, 0], [0.5, 0], [1, 0],
-                [0, 0.5], [0.5 + s, 0.5 + c], [1, 0.5],
-                [0, 1], [0.5, 1], [1, 1]
-            ], colors: colors)
+        let d: Float = phase ? 0.12 : -0.12
+        MeshGradient(width: 3, height: 3, points: [
+            [0, 0], [0.5, 0], [1, 0],
+            [0, 0.5], [0.5 + d, 0.5 - d], [1, 0.5],
+            [0, 1], [0.5, 1], [1, 1]
+        ], colors: colors)
+        .allowsHitTesting(false)
+        .onAppear {
+            guard !reduce else { return }
+            withAnimation(.easeOut(duration: 1.8)) { phase = true }
         }
     }
 }
